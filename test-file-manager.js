@@ -14,7 +14,7 @@ const testFileManager = {
     };
     
     try {
-      const response = await fetch(`/project/${testData.projectId}/files/${testData.fileId}/save`, {
+      const response = await fetch(`api/project/${testData.projectId}/files/${testData.fileId}/save`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,7 +49,7 @@ const testFileManager = {
     };
     
     try {
-      const response = await fetch(`/project/${testData.projectId}/files/${testData.fileId}/content`, {
+      const response = await fetch(`api/project/${testData.projectId}/files/${testData.fileId}/content`, {
         method: 'GET',
         headers: {
           'Auth-Token': localStorage.getItem('authToken'),
@@ -106,7 +106,7 @@ const testFileManager = {
     };
     
     try {
-      const response = await fetch(`/project/${testData.projectId}/files`, {
+      const response = await fetch(`api/project/${testData.projectId}/files`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

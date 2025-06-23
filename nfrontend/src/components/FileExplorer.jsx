@@ -166,7 +166,7 @@ function FileExplorer(props) {
   // Expand/collapse
   const handleExpand = (file_tree_id, expand) => {
     console.log('[FileExplorer] setExpandData:', file_tree_id, expand);
-    fetch('/editor/set-expand-data', {
+    fetch('api/editor/set-expand-data', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', username: user?.username },
       body: JSON.stringify({ file_tree_id, expand })

@@ -56,7 +56,7 @@ const ProjectInvitation = ({
   const fetchPendingInvitations = useCallback(async () => {
     setIsLoadingInvitations(true);
     try {
-      const response = await GET(`/project/${projectId}/invitations`);
+      const response = await GET(`api/project/${projectId}/invitations`);
       setPendingInvitations(response.data || []);
     } catch (error) {
       console.error('Error fetching invitations:', error);
@@ -120,7 +120,7 @@ const ProjectInvitation = ({
 
     setIsSending(true);
     try {
-      await POST(`/project/${projectId}/invitations`, {
+      await POST(`api/project/${projectId}/invitations`, {
         invitedEmail: invitedEmail.trim(),
         role: selectedRole
       });

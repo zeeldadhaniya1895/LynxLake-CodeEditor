@@ -1,0 +1,28 @@
+{
+  "name": "coedit",
+  "version": "1.0.0",
+  "description": "Collaborative Code Editor with 3-Service Architecture",
+  "main": "index.js",
+  "scripts": {
+    "start": "node start-services.js",
+    "start:api": "cd api-service && npm run dev",
+    "start:socket": "cd socket-service && npm run dev",
+    "start:execution": "cd execution-service && npm run dev",
+    "start:frontend": "cd nfrontend && npm run dev",
+    "install:all": "npm install && cd api-service && npm install && cd ../socket-service && npm install && cd ../execution-service && npm install && cd ../nfrontend && npm install",
+    "dev": "concurrently \"npm run start:api\" \"npm run start:socket\" \"npm run start:execution\" \"npm run start:frontend\"",
+    "build": "cd nfrontend && npm run build",
+    "setup:env": "node deploy-scripts/setup-env.js",
+    "setup:dev": "node deploy-scripts/setup-env.js development",
+    "setup:staging": "node deploy-scripts/setup-env.js staging",
+    "setup:prod": "node deploy-scripts/setup-env.js production",
+    "deploy:check": "node deploy-scripts/check-deployment.js",
+    "deps:check": "node deploy-scripts/check-dependencies.js",
+    "health:check": "concurrently \"curl http://localhost:5000/health\" \"curl http://localhost:5001/health\" \"curl http://localhost:5002/health\""
+  },
+  "author": "Team G35",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+} 

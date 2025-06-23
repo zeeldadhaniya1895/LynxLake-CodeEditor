@@ -43,7 +43,7 @@ const InvitationPage = () => {
   const validateInvitation = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await GET(`/project/invitations/${token}`);
+      const response = await GET(`api/project/invitations/${token}`);
       setInvitation(response.data);
       setSelectedRole(response.data.role || ROLES.VIEWER);
     } catch (error) {
@@ -73,7 +73,7 @@ const InvitationPage = () => {
 
     setIsAccepting(true);
     try {
-      await POST(`/project/invitations/${token}/accept`);
+      await POST(`api/project/invitations/${token}/accept`);
       
       toast('Invitation accepted successfully!', {
         icon: <CheckCircleRounded />,

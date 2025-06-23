@@ -79,7 +79,7 @@ const ProjectMembers = React.memo(({
     
     setIsLoading(true);
     try {
-      const response = await GET(`/project/${projectId}/members`);
+      const response = await GET(`api/project/${projectId}/members`);
       setMembers(response.data || []);
     } catch (error) {
       console.error('Error fetching members:', error);
@@ -193,7 +193,7 @@ const ProjectMembers = React.memo(({
     
     try {
       const updatePromises = Object.entries(pendingRoleChanges).map(([username, newRole]) => 
-        PUT(`/project/${projectId}/users/${username}/role`, {
+        PUT(`api/project/${projectId}/users/${username}/role`, {
           role: newRole
         })
       );
@@ -248,7 +248,7 @@ const ProjectMembers = React.memo(({
     setUpdatingRole(username);
 
     try {
-      await DELETE(`/project/${projectId}/contributors/${username}`);
+      await DELETE(`api/project/${projectId}/contributors/${username}`);
       
       toast('Member removed successfully!', {
         icon: <CheckCircleRounded />,

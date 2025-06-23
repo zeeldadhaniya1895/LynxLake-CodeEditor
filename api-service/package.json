@@ -1,0 +1,26 @@
+{
+  "name": "api-service",
+  "version": "1.0.0",
+  "description": "API Service for CoEdit - Database and User Management",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "author": "Team G35",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "bcrypt": "^5.1.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.19.2",
+    "googleapis": "^144.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.16",
+    "nodemon": "^3.1.4",
+    "pg": "^8.12.0",
+    "uuid": "^10.0.0"
+  }
+}

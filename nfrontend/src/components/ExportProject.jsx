@@ -19,7 +19,7 @@ export default function ExportProject(props) {
     const handleDownload = async () => {
         try {
             setIsLoading(true);
-            const response = await API.get(`/project/export-project?project_id=${projectId}`, {
+            const response = await API.get(`api/project/export-project?project_id=${projectId}`, {
                 responseType: 'blob', // Important to handle the zip file
             });
 

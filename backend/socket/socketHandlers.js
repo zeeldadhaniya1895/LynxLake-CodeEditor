@@ -23,8 +23,7 @@ const insertLiveUser = async (project_id, fileId, username) => {
                     [fileId, username, project_id]
                 );
             } catch (err) {
-                // console.error("Error updating live user:", err);
-                // throw err;
+                console.error("Error updating live user:", err);
             }
         } else {
             try {
@@ -34,17 +33,14 @@ const insertLiveUser = async (project_id, fileId, username) => {
             VALUES ($1, $2, $3, TRUE, TRUE, CURRENT_TIMESTAMP)
             ON CONFLICT (file_id, username) DO NOTHING;
             `,
-                    // "INSERT INTO live_users (file_id, project_id, username, is_active_in_tab, is_live, live_users_timestamp) VALUES ($1, $2, $3, TRUE, TRUE, CURRENT_TIMESTAMP);",
                     [fileId, project_id, username]
                 );
             } catch (err) {
-                // console.error("Error inserting live user:", err);
-                // throw err;
+                console.error("Error inserting live user:", err);
             }
         }
     } catch (err) {
-        // console.error("Error getting live user:", err);
-        // throw err;
+        console.error("Error getting live user:", err);
     }
 };
 
@@ -61,7 +57,7 @@ const removeActiveLiveUser = async (username) => {
 
 // Query to get live users in a file
 const getLiveUsersInFile = async (project_id, fileId, username) => {
-    const query = `SELECT f.*, lu.*, f.file_id AS id FROM files AS f LEFT JOIN live_users AS lu ON f.file_id = lu.file_id WHERE lu.file_id = $1 AND lu.username = $2 AND lu.project_id = $3;`; //f.project_id = $1;
+    const query = `SELECT f.*, lu.*, f.file_id AS id FROM files AS f LEFT JOIN live_users AS lu ON f.file_id = lu.file_id WHERE lu.file_id = $1 AND lu.username = $2 AND lu.project_id = $3;`;
     const res = await pool.query(query, [fileId, username, project_id]);
     return res.rows;
 };
@@ -91,7 +87,7 @@ const insertAndGetNewNodeToFileExplorer = async (
         return null;
     }
     const uniqueIdFileTree = uuidv4(); //file_tree_id is file_id
-    const insertQuery = `INSERT INTO file_tree (file_tree_id, project_id, parent_id, name, is_folder) VALUES ($1, $2, $3, $4, $5)`; //f.project_id = $1;
+    const insertQuery = `INSERT INTO file_tree (file_tree_id, project_id, parent_id, name, is_folder) VALUES ($1, $2, $3, $4, $5)`;
     await pool.query(insertQuery, [
         uniqueIdFileTree,
         project_id,
@@ -112,7 +108,7 @@ const insertAndGetNewNodeToFileExplorer = async (
         );
     }
 
-    const getQuery = `SELECT * FROM file_tree WHERE file_tree_id = $1`; //f.project_id = $1;
+    const getQuery = `SELECT * FROM file_tree WHERE file_tree_id = $1`;
     const result = await pool.query(getQuery, [uniqueIdFileTree]);
 
     return result.rows[0];
@@ -135,15 +131,12 @@ const deleteFileAndChildren = async (fileTreeId) => {
 
     try {
         // Get all the descendants
-        const descendantsResult = await executeQuery(getDescendantsQuery, [
-            fileTreeId,
-        ]);
-
+        const descendantsResult = await pool.query(getDescendantsQuery, [fileTreeId]);
 
         for (let i = descendantsResult.rows.length - 1; i >= 0; i--) {
             const { file_tree_id } = descendantsResult.rows[i];
 
-            await executeQuery(
+            await pool.query(
                 "DELETE FROM file_tree_expand_user WHERE file_tree_id = $1",
                 [file_tree_id]
             );
@@ -152,7 +145,7 @@ const deleteFileAndChildren = async (fileTreeId) => {
         for (let i = descendantsResult.rows.length - 1; i >= 0; i--) {
             const { file_tree_id } = descendantsResult.rows[i];
 
-            await executeQuery("DELETE FROM file_tree WHERE file_tree_id = $1", [
+            await pool.query("DELETE FROM file_tree WHERE file_tree_id = $1", [
                 file_tree_id,
             ]);
         }
@@ -160,7 +153,7 @@ const deleteFileAndChildren = async (fileTreeId) => {
         for (let i = descendantsResult.rows.length - 1; i >= 0; i--) {
             const { file_tree_id } = descendantsResult.rows[i];
 
-            await executeQuery("DELETE FROM live_users WHERE file_id = $1", [
+            await pool.query("DELETE FROM live_users WHERE file_id = $1", [
                 file_tree_id,
             ]);
         }
@@ -168,10 +161,10 @@ const deleteFileAndChildren = async (fileTreeId) => {
         for (let i = descendantsResult.rows.length - 1; i >= 0; i--) {
             const { file_tree_id } = descendantsResult.rows[i];
 
-            await executeQuery("DELETE FROM files WHERE file_id = $1", [file_tree_id]);
+            await pool.query("DELETE FROM files WHERE file_id = $1", [file_tree_id]);
         }
     } catch (err) {
-        // console.error("Error deleting files:", err);
+        console.error("Error deleting files:", err);
     }
 };
 
@@ -197,7 +190,7 @@ const insertNewLog = async (file_id, newLog) => {
     try {
         await pool.query(query, parameters);
     } catch (error) {
-        // console.error("Error inserting new log:", error);
+        console.error("Error inserting new log:", error);
     }
 };
 
@@ -208,12 +201,11 @@ const insertChatMessage = async (project_id, username, message, time) => {
     try {
         await pool.query(query, parameters);
     } catch (error) {
-        // console.error("Error inserting chat message:", error);
+        console.error("Error inserting chat message:", error);
     }
 };
 
 const updateLastOpened = async (project_id, username) => {
-
     if (!project_id || !username) return;
 
     const query =
@@ -226,74 +218,37 @@ const updateLastOpened = async (project_id, username) => {
     try {
         await pool.query(query, [project_id, username]);
     } catch (error) {
-        // console.log(error);
+        console.log(error);
     }
 };
 
-// const insertLiveUserIfNotExist = async (project_id, username) => {
-
-//     if (!project_id || !username) return;
-
-//     const query =
-//         `
-//         INSERT INTO project_live_users (project_id, username)
-//         VALUES ($1, $2)
-//         ON CONFLICT (project_id, username) DO NOTHING;
-//         `;
-
-//     try {
-//         await pool.query(query, [project_id, username]);
-//     } catch (error) {
-//         // console.log(error);
-//     }
-// };
-
-
-
 const socketHandlers = (io) => {
     io.on("connection", (socket) => {
+        console.log("New socket connection:", socket.id);
         socket.setMaxListeners(100);
 
         socket.on("editor:join-project", async ({ project_id, username, image }) => {
+            console.log("User joining project:", { project_id, username, image });
             socket.join(project_id);
-            // console.log("project_id", project_id);
-            // console.log("username", username);
-            // console.log("image", image);
 
             await updateLastOpened(project_id, username);
-            // await pool.query(
-            //     `
-            //     UPDATE project_owners
-            //     SET last_opened = CURRENT_TIMESTAMP
-            //     WHERE project_id = $1
-            //     AND username = $2;
-            //     `,
-            //     [project_id, username]
-            // );
+
+            // Handle user leaving from editor
             socket.on("editor:live-user-left-from-editor", (data) => {
                 io.to(project_id).emit("editor:live-user-left", data);
             });
 
+            // Broadcast user joined to others
             socket.broadcast.to(project_id).emit("editor:live-user-joined", { username, image });
+            
+            // Send back user joined event
             socket.on("editor:live-user-joined-send-back", (data) => {
                 io.to(project_id).emit("editor:live-user-joined-send-back", data);
             });
 
-            // await insertLiveUserIfNotExist(project_id, username);
-            // await pool.query(
-            //     `
-            //     INSERT INTO project_live_users (project_id, username)
-            //     VALUES ($1, $2)
-            //     ON CONFLICT (project_id, username) DO NOTHING;
-            //     `,
-            //     [project_id, username]
-            // );
-
-            // io.to(project_id).emit("editor:live-user-joined", { username, image });
-
-            socket.on(
-                "file-explorer:insert-node",
-                async ({ new_node_parent_id, name, is_folder }) => {
+            // File explorer operations
+            socket.on("file-explorer:insert-node", async ({ new_node_parent_id, name, is_folder }) => {
+                console.log("Inserting node:", { new_node_parent_id, name, is_folder });
                     const new_node = await insertAndGetNewNodeToFileExplorer(
                         username,
                         project_id,
@@ -302,62 +257,62 @@ const socketHandlers = (io) => {
                         is_folder
                     );
                     io.to(project_id).emit("file-explorer:insert-node", new_node);
-                }
-            );
+            });
 
             socket.on("file-explorer:delete-node", async ({ node_id }) => {
+                console.log("Deleting node:", node_id);
                 await deleteFileAndChildren(node_id);
                 io.to(project_id).emit("file-explorer:delete-node", { node_id });
             });
 
+            // Code editor operations
             socket.on("code-editor:send-change", async (data) => {
+                console.log("Code change received:", { file_id: data.file_id, username });
                 socket.broadcast.to(project_id).emit("code-editor:receive-change", data);
-                const { file_id, newLog } = data;
-                await insertNewLog(file_id, newLog);
+                
+                // Save log if provided
+                if (data.newLog) {
+                    await insertNewLog(data.file_id, data.newLog);
+                }
             });
 
-            socket.on("code-editor:send-all-cursors", ({ fileId }) => {
-                socket.broadcast.to(project_id).emit("code-editor:send-all-cursors", { fileId });
-                socket.on("code-editor:get-all-users-cursors", (data) => {
-                    socket.broadcast.to(project_id).emit("code-editor:get-all-users-cursors", data);
-                });
-            });
-
+            // Cursor operations
             socket.on("code-editor:send-cursor", (data) => {
+                console.log("Cursor position received:", { file_id: data.file_id, username: data.username });
                 io.to(project_id).emit("code-editor:receive-cursor", data);
             });
 
             socket.on("code-editor:remove-cursor", (data) => {
+                console.log("Remove cursor:", data);
                 socket.broadcast.to(project_id).emit("code-editor:remove-cursor", data);
             });
 
+            // Live users management
             socket.on("code-editor:load-live-users", async ({ file_id }) => {
+                console.log("Loading live users for file:", file_id);
                 io.to(project_id).emit("code-editor:load-live-users", { file_id });
             });
 
             socket.on("code-editor:load-live-users-send-back", async (data) => {
-                io.to(project_id).emit("code-editor:load-live-users-send-back", data);
+                console.log("Live users data received:", data);
+                const allUsers = await getAllLiveUserInFile(data.file_id);
+                io.to(project_id).emit("code-editor:load-live-users-send-back", { allUsers });
             });
 
-            // socket.on("code-editor:load-live-users", async ({ file_id }) => {
-            //     //send to personal
-            //     const allUsers = await getAllLiveUserInFile(file_id);
-            //     console.log("allUsers", allUsers);
-            //     socket.emit("code-editor:load-live-users", { allUsers });
-            // });
-
             socket.on("code-editor:join-file", async ({ file_id }) => {
+                console.log("User joining file:", { file_id, username });
                 await insertLiveUser(project_id, file_id, username);
 
                 const allUsers = await getAllLiveUserInFile(file_id);
-                // console.log("allUsers", allUsers);
                 socket.emit("code-editor:load-live-users", { allUsers });
 
-                //send to all other users
+                // Notify others about user joining
                 const aUser = await getALiveUserInFile(file_id, username);
                 io.to(project_id).emit("code-editor:user-joined", { aUser, image });
 
+                // Handle user leaving file
                 socket.on("code-editor:leave-file", async ({ file_id }) => {
+                    console.log("User leaving file:", { file_id, username });
                     await removeLiveUser(file_id, username);
                     socket.broadcast
                         .to(project_id)
@@ -365,16 +320,22 @@ const socketHandlers = (io) => {
                 });
             });
 
+            // Chat operations
             socket.on("chat:send-message", async ({ message, time }) => {
+                console.log("Chat message received:", { message, username });
                 await insertChatMessage(project_id, username, message, time);
                 io.to(project_id).emit("chat:receive-message", { message, time, image, username, socketId: socket.id });
             });
 
+            // Project operations
             socket.on("project:delete-project", async (data) => {
+                console.log("Project deletion requested:", data);
                 io.to(project_id).emit("project:delete-project", data);
             });
 
+            // Handle disconnect
             socket.on("disconnect", async () => {
+                console.log("User disconnected:", username);
                 io.to(project_id).emit("editor:live-user-left", { username });
 
                 socket.broadcast
@@ -385,7 +346,6 @@ const socketHandlers = (io) => {
                 socket.broadcast
                     .to(project_id)
                     .emit("code-editor:remove-active-live-user", { username });
-
             });
         });
     });

@@ -11,3 +11,65 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
 }
+
+/* Cursor decorations for collaborative editing */
+.cursor-before {
+  position: relative;
+}
+
+.cursor-before::before {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 18px;
+  background-color: #ff6b6b;
+  z-index: 10;
+  animation: blink 1s infinite;
+}
+
+.cursor-after {
+  position: relative;
+}
+
+.cursor-after::after {
+  content: '';
+  position: absolute;
+  width: 2px;
+  height: 18px;
+  background-color: #4ecdc4;
+  z-index: 10;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Different colors for different users */
+.cursor-before-user1::before { background-color: #ff6b6b; }
+.cursor-before-user2::before { background-color: #4ecdc4; }
+.cursor-before-user3::before { background-color: #45b7d1; }
+.cursor-before-user4::before { background-color: #96ceb4; }
+.cursor-before-user5::before { background-color: #feca57; }
+
+.cursor-after-user1::after { background-color: #ff6b6b; }
+.cursor-after-user2::after { background-color: #4ecdc4; }
+.cursor-after-user3::after { background-color: #45b7d1; }
+.cursor-after-user4::after { background-color: #96ceb4; }
+.cursor-after-user5::after { background-color: #feca57; }
+
+/* Monaco multi-cursor overlays */
+.remote-cursor {
+  border-left: 2px solid #ff6b6b !important;
+  height: 20px !important;
+  position: absolute !important;
+  z-index: 1000 !important;
+  pointer-events: none;
+}
+.cursor-billu { border-left-color: #ff6b6b !important; }
+.cursor-zeelu { border-left-color: #4ecdc4 !important; }
+.cursor-user1 { border-left-color: #45b7d1 !important; }
+.cursor-user2 { border-left-color: #96ceb4 !important; }
+.cursor-user3 { border-left-color: #feca57 !important; }
+/* Add more as needed for each username */

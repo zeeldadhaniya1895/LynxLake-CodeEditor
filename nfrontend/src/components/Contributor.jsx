@@ -98,7 +98,7 @@ function Contributor(props) {
   const addContributor = async (contributors) => {
     setIsAddingContributor(true);
     try {
-      await POST(`/project/add-contributor/${projectId}`, { contributors });
+      await POST(`api/project/add-contributor/${projectId}`, { contributors });
       toast.success("Contributors added successfully!");
       onContributorAdded();
       handleClose();

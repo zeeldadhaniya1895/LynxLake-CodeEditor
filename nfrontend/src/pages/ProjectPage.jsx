@@ -303,7 +303,7 @@ function ProjectPage() {
 
   const handleAcceptInvitation = async (invitation) => {
     try {
-      await apiRef.current.POST(`/project/invitations/${invitation.invitation_id}/accept`);
+      await apiRef.current.POST(`api/project/invitations/${invitation.invitation_id}/accept`);
       
       toast("Invitation accepted successfully!", {
         icon: <CheckCircleRoundedIcon />,
@@ -332,7 +332,7 @@ function ProjectPage() {
 
   const handleRejectInvitation = async (invitation) => {
     try {
-      await apiRef.current.POST(`/project/invitations/${invitation.invitation_id}/reject`);
+      await apiRef.current.POST(`api/project/invitations/${invitation.invitation_id}/reject`);
       
       toast("Invitation rejected", {
         icon: <InfoRoundedIcon />,
@@ -540,7 +540,7 @@ function ProjectPage() {
 
     try {
       setIsDeletingProject(true);
-      const response = await apiRef.current.DELETE(`/project/${projectToDelete.project_id || projectToDelete._id}`);
+      const response = await apiRef.current.DELETE(`api/project/${projectToDelete.project_id || projectToDelete._id}`);
       
       // Update the projects list with the response
       if (response?.data?.projects) {

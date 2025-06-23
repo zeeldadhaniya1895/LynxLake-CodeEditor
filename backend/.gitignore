@@ -1,7 +1,0 @@
-#backend gitignore
-
-# Ignore node modules 
-/node_modules
-
-#environment files
-.env
