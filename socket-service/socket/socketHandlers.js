@@ -288,10 +288,20 @@ const socketHandlers = (io) => {
             });
 
             // Chat operations
-            socket.on("chat:send-message", async ({ message, time }) => {
-                console.log("Chat message received:", { message, username });
-                await insertChatMessage(project_id, username, message, time);
-                io.to(project_id).emit("chat:receive-message", { message, time, image, username, socketId: socket.id, project_id });
+            socket.on("chat:send-message", async (data) => {
+                // If AI message, preserve username, image, isAI
+                let emitData = {
+                    message: data.message,
+                    time: data.time,
+                    image: data.image || image,
+                    username: data.username || username,
+                    isAI: data.isAI || false,
+                    socketId: socket.id,
+                    project_id
+                };
+                // Insert chat message with correct username
+                await insertChatMessage(project_id, emitData.username, emitData.message, emitData.time);
+                io.to(project_id).emit("chat:receive-message", emitData);
             });
 
             // Project operations

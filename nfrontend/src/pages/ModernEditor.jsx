@@ -8,6 +8,7 @@ import { useUser } from "../context/user";
 import { getBestProfileImage, getUserInitials } from "../utils/avatar";
 import CodeIcon from '@mui/icons-material/Code';
 import EditorLayout from "../components/layout/EditorLayout";
+import { useParams } from "react-router-dom";
 
 const styles = {
   container: {
@@ -55,6 +56,7 @@ const styles = {
 };
 
 function ModernEditor() {
+  const { projectId } = useParams();
   const [selectedFile, setSelectedFile] = useState(null); // { id, name, ... }
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [sidebarWidth, setSidebarWidth] = useState(240); // default width
@@ -64,7 +66,7 @@ function ModernEditor() {
 
   return (
     <Box sx={{ width: '100vw', height: '100vh', bgcolor: '#0d1117' }}>
-      <EditorLayout />
+      <EditorLayout projectId={projectId} />
     </Box>
   );
 }

@@ -524,7 +524,7 @@ export default function ModernCodeEditor({
             border: '1.5px solid #58A6FF',
           }
         }}>
-          <img src={logo} alt="CoEdit Logo" style={{ width: 72, height: 72, borderRadius: '50%', marginBottom: 18, boxShadow: '0 2px 16px #58A6FF44', background: '#161B22', border: '2.5px solid #58A6FF' }} />
+          <img src={logo} alt="LynxLake Logo" style={{ width: 72, height: 72, borderRadius: '50%', marginBottom: 18, boxShadow: '0 2px 16px #58A6FF44', background: '#161B22', border: '2.5px solid #58A6FF' }} />
           <Typography variant="h5" sx={{ background: 'linear-gradient(90deg, #58A6FF 30%, #1F6FEB 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 900, mb: 1, letterSpacing: 1, fontSize: '2rem', textShadow: '0 2px 12px #58A6FF22' }}>
             Select a file to start
           </Typography>
@@ -532,7 +532,7 @@ export default function ModernCodeEditor({
             To start editing, select a file or create a new one.
           </Typography>
           <Typography sx={{ color: '#58A6FF', fontWeight: 700, fontSize: '1.1rem', mb: 1 }}>
-            Welcome to CoEdit 🚀
+            Welcome to LynxLake 🚀
           </Typography>
           <Typography sx={{ color: '#A0B3D6', fontSize: '1rem', fontStyle: 'italic' }}>
             "Let's make some bugs together! 🐞"

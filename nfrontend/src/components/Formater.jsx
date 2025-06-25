@@ -1,4 +1,4 @@
-const Pill = ({ image, text, onClick }) => {
+const Formater = ({ image, text, onClick }) => {
   return (
     <span className="user-pill" onClick={onClick}>
       <img src={image} alt={text} />
@@ -7,4 +7,4 @@ const Pill = ({ image, text, onClick }) => {
   );
 };
 
-export default Pill;
+export default Formater;

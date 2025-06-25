@@ -4,13 +4,14 @@ import EmojiPicker, { Theme } from 'emoji-picker-react';
 
 //Hooks
 import useAPI from '../hooks/api';
+import { useUser } from '../context/user';
 
 //Utils
 import { getAvatar } from '../utils/avatar';
 import { formatLogTimestamp } from "../utils/formatters";
 
 //Material Components
-import { Box, Avatar, CircularProgress, Typography } from '@mui/material';
+import { Box, Avatar, CircularProgress, Typography, IconButton } from '@mui/material';
 
 //Material Icons
 import SentimentSatisfiedRoundedIcon from '@mui/icons-material/SentimentSatisfiedRounded';
@@ -18,6 +19,7 @@ import SendRoundedIcon from '@mui/icons-material/SendRounded';
 import KeyboardDoubleArrowUpRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowUpRounded';
 import KeyboardDoubleArrowDownRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowDownRounded';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
+import SmartToyRoundedIcon from '@mui/icons-material/SmartToyRounded';
 
 import logo from '../images/logo.jpg';
 
@@ -25,6 +27,7 @@ function Chat(props) {
 
     const { socket, projectId } = props;
     const { GET } = useAPI();
+    const { userInfo } = useUser();
 
     const [isEmojiOn, setIsEmojiOn] = useState(false);
     const [message, setMessage] = useState('');
@@ -36,6 +39,8 @@ function Chat(props) {
     const [isChatLoading, setIsChatLoading] = useState(false);
     const [msgSendLoading, setMsgSendLoading] = useState(false);
     const [messages, setMessages] = useState([]);
+
+    const GEMINI_API_KEY = "AIzaSyB_wgDMWnrlTvlF3unpJc8w7weeY5RXRTc";
 
     const toggleEmoji = () => setIsEmojiOn((prev) => !prev);
 
@@ -86,11 +91,10 @@ function Chat(props) {
     }, []);
 
     useEffect(() => {
-
         const loadMessages = async () => {
             setIsChatLoading(true);
             try {
-                const response = await GET('/project/chat/messages', { project_id: projectId });
+                const response = await GET(`/api/project/${projectId}/chat/messages`);
                 setMessages(response.data);
                 scrollToBottom();
             } catch (error) {
@@ -108,20 +112,47 @@ function Chat(props) {
                 setIsChatLoading(false);
             }
         }
+        if (projectId) loadMessages();
+    }, [projectId]);
 
-        loadMessages();
+    // AI response fetcher
+    async function fetchAIResponse(userMsg) {
+        const res = await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY, {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [
+                    { parts: [ { text: `You are a helpful AI assistant for coding and technical queries. Only answer coding, programming, or technical questions.\nUser: ${userMsg}` } ] }
+                ]
+            })
+        });
+        const data = await res.json();
+        // Gemini API returns: data.candidates[0].content.parts[0].text
+        return data?.candidates?.[0]?.content?.parts?.[0]?.text || "(AI couldn't answer)";
+    }
 
-    }, []);
-
-
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         if (!socket || message.trim() === '') return;
 
         setMsgSendLoading(true);
-        const msgTime = formatLogTimestamp(new Date());
+        const msgTime = new Date().toISOString();
 
+        // Emit user message
         socket.emit('chat:send-message', { message, time: msgTime });
         setMessage('');
+
+        // If @ai mention che to Gemini call karo
+        if (message.trim().toLowerCase().includes('@ai')) {
+            const aiText = await fetchAIResponse(message);
+            // Emit AI message as if from AI
+            socket.emit('chat:send-message', {
+                message: aiText,
+                time: new Date().toISOString(),
+                username: 'AI',
+                isAI: true,
+                image: ''
+            });
+        }
     }
 
     useEffect(() => {
@@ -149,12 +180,24 @@ function Chat(props) {
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between',
+                justifyContent: 'flex-end',
                 height: '100%',
                 width: '100%',
                 overflow: 'hidden',
+                bgcolor: '#181c23',
+                borderRadius: 3,
+                boxShadow: '0 2px 16px #0004',
             }}
         >
+            {/* Chat Heading */}
+            <Box sx={{ px: 3, pt: 2, pb: 1, borderBottom: '1.5px solid #23272f', bgcolor: 'transparent', zIndex: 2 }}>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: '#58A6FF', letterSpacing: 1, fontSize: '1.2rem', mb: 0.2 }}>
+                    Project Chat
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#A0B3D6', fontSize: '0.98rem', fontWeight: 500 }}>
+                    Collaborate with your team. Mention <b>@ai</b> for instant help!
+                </Typography>
+            </Box>
             {/* Messages Section */}
             <Box
                 id="style-1"
@@ -162,229 +205,164 @@ function Chat(props) {
                 sx={{
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '100%',
                     flexGrow: 1,
                     overflowY: 'auto',
                     p: 2,
-                    minHeight: "24vh"
+                    minHeight: '24vh',
+                    maxHeight: 'calc(100vh - 180px)',
+                    bgcolor: 'transparent',
                 }}
             >
                 {isChatLoading ? (
-                    <>
-                        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", width: "100%" }}>
-                            <CircularProgress
-                                size={20}
-                                thickness={6}
-                                sx={{
-                                    color: "black",
-                                    '& circle': { strokeLinecap: 'round' },
-                                }}
-                            />
-                        </Box>
-                    </>
+                    <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100%", width: "100%" }}>
+                        <CircularProgress size={24} thickness={6} sx={{ color: "#58A6FF" }} />
+                    </Box>
                 ) : messages.length === 0 ? (
-                    <Box sx={{
-                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%',
-                        position: 'relative', zIndex: 2
-                    }}>
-                        <Box sx={{
-                            p: 3,
-                            borderRadius: 5,
-                            bgcolor: '#23272f',
-                            boxShadow: '0 8px 32px #0008, 0 0 0 2px #58A6FF44',
-                            border: '1.5px solid #23272f',
-                            minWidth: 280,
-                            maxWidth: 400,
-                            backdropFilter: 'blur(12px)',
-                            textAlign: 'center',
-                            mb: 2,
-                            transition: 'box-shadow 0.3s, border 0.3s',
-                            '&:hover': {
-                              boxShadow: '0 12px 40px #1F6FEB33, 0 0 0 3px #58A6FF88',
-                              border: '1.5px solid #58A6FF',
-                            }
-                        }}>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%', position: 'relative', zIndex: 2 }}>
+                        <Box sx={{ p: 3, borderRadius: 5, bgcolor: '#23272f', boxShadow: '0 8px 32px #0008, 0 0 0 2px #58A6FF44', border: '1.5px solid #23272f', minWidth: 280, maxWidth: 400, backdropFilter: 'blur(12px)', textAlign: 'center', mb: 2 }}>
                             <img src={logo} alt="Chat Logo" style={{ width: 56, height: 56, borderRadius: '50%', marginBottom: 12, boxShadow: '0 2px 12px #58A6FF44', background: '#161B22', border: '2px solid #58A6FF' }} />
                             <Typography variant="h6" sx={{ background: 'linear-gradient(90deg, #58A6FF 30%, #1F6FEB 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 900, mb: 1, letterSpacing: 1, fontSize: '1.4rem', textShadow: '0 2px 12px #58A6FF22' }}>
                                 Welcome to Project Chat!
                             </Typography>
-                            <Typography sx={{ color: '#A0B3D6', mb: 1 }}>
-                                No messages yet.
-                            </Typography>
-                            <Typography sx={{ color: '#58A6FF', fontWeight: 700, fontSize: '1.1rem', mb: 1 }}>
-                                Say hi to your teammates! 👋
-                            </Typography>
+                            <Typography sx={{ color: '#A0B3D6', mb: 1 }}>No messages yet.</Typography>
+                            <Typography sx={{ color: '#58A6FF', fontWeight: 700, fontSize: '1.1rem', mb: 1 }}>Say hi to your teammates! 👋</Typography>
                             <Typography sx={{ color: '#A0B3D6', fontSize: '1rem', fontStyle: 'italic', mb: 2 }}>
                                 "Every great project starts with a hello! 💬"
                             </Typography>
-                            {/* Dummy chat bubbles */}
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, alignItems: 'flex-start', mt: 2 }}>
-                                <Box sx={{ bgcolor: '#23272f', color: '#58A6FF', px: 2, py: 1, borderRadius: 3, mb: 1, boxShadow: '0 2px 8px #58A6FF22', border: '1.5px solid #58A6FF', fontWeight: 600, animation: 'fadeIn 0.7s' }}>
-                                    Hi there! 👋
-                                </Box>
-                                <Box sx={{ bgcolor: '#23272f', color: '#E6EDF3', px: 2, py: 1, borderRadius: 3, mb: 1, boxShadow: '0 2px 8px #58A6FF22', border: '1.5px solid #23272f', fontWeight: 600, animation: 'fadeIn 1.2s' }}>
-                                    Welcome to the project!
-                                </Box>
-                                <Box sx={{ bgcolor: '#23272f', color: '#A0B3D6', px: 2, py: 1, borderRadius: 3, boxShadow: '0 2px 8px #58A6FF22', border: '1.5px solid #23272f', fontWeight: 600, animation: 'fadeIn 1.7s' }}>
-                                    Let's start collaborating! 🚀
-                                </Box>
-                            </Box>
-                            <style>{`
-                              @keyframes fadeIn {
-                                from { opacity: 0; transform: translateY(20px); }
-                                to { opacity: 1; transform: translateY(0); }
-                              }
-                            `}</style>
                         </Box>
                     </Box>
                 ) : (
-                    messages.map((msg, index) => (
-                        <Box key={index} sx={{ display: 'flex', justifyContent: "flex-start", gap: 1, bgcolor: "#E6E6E6", borderRadius: "10px", my: "10px" }}>
-                            <Box sx={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-start", mx: 1, my: 2 }}>
-                                <Avatar
-                                    sx={{ width: 38, height: 38, fontSize: 16, border: "1px solid black" }}
-                                    alt={msg.username}
-                                    src={getAvatar(msg.image)}
-                                    imgProps={{
-                                        crossOrigin: "anonymous",
-                                        referrerPolicy: "no-referrer",
-                                        decoding: "async",
-                                    }}
-                                />
-                            </Box>
-                            <Box sx={{ py: 1, width: "100%", display: "flex", justifyContent: "flex-start", alignItems: "flex-start", flexDirection: "column" }}>
-                                <Typography variant="caption" fontWeight="bold" sx={{ color: "#404040" }}>{msg.username}</Typography>
-                                <Typography sx={{ fontWeight: 'bold', color: 'black' }}>{msg.message}</Typography>
-                                <Box sx={{ width: "100%", display: "flex", justifyContent: "flex-end", px: 1 }}>
-                                    <Typography variant="caption" fontWeight="bold" sx={{ color: "grey" }}>{msg.time}</Typography>
+                    messages.map((msg, index) => {
+                        const isAI = msg.username === 'AI' || msg.isAI;
+                        // AI message kabhi bhi apnu na hoy, always left/center
+                        const isMe = !isAI && msg.username === userInfo?.userName;
+                        return (
+                            <Box key={index} sx={{
+                                display: 'flex',
+                                justifyContent: isAI ? 'center' : isMe ? 'flex-end' : 'flex-start',
+                                gap: 1.5,
+                                my: '10px',
+                                alignItems: 'flex-end',
+                            }}>
+                                {/* Left Avatar (other user) */}
+                                {!isMe && !isAI && (
+                                    <Avatar sx={{ width: 36, height: 36, fontSize: 16, border: "1.5px solid #58A6FF" }} alt={msg.username} src={getAvatar(msg.image)} />
+                                )}
+                                {/* AI Avatar */}
+                                {isAI && (
+                                    <Avatar sx={{ width: 36, height: 36, bgcolor: '#bdbdbd', color: 'white', fontWeight: 900, fontSize: 20, border: '2px solid #fff', boxShadow: '0 2px 8px #8e24aa44' }}>
+                                        <SmartToyRoundedIcon />
+                                    </Avatar>
+                                )}
+                                {/* Chat Bubble */}
+                                <Box sx={{
+                                    py: 1.2,
+                                    px: 2.2,
+                                    borderRadius: 3.5,
+                                    bgcolor: isAI ? '#e0e0e0' : isMe ? '#58A6FF' : '#F5F7FA',
+                                    color: isAI ? '#23272f' : isMe ? 'white' : '#23272f',
+                                    maxWidth: '65%',
+                                    minWidth: 60,
+                                    boxShadow: isAI ? '0 2px 12px #bdbdbd33' : isMe ? '0 2px 8px #58A6FF22' : '0 2px 8px #23272f22',
+                                    border: isAI ? '2px solid #bdbdbd' : isMe ? '2px solid #58A6FF' : '1.5px solid #E6E6E6',
+                                    fontStyle: isAI ? 'italic' : 'normal',
+                                    fontWeight: isAI ? 600 : 500,
+                                    position: 'relative',
+                                    alignSelf: isMe ? 'flex-end' : 'flex-start',
+                                }}>
+                                    <Typography variant="caption" fontWeight="bold" sx={{ color: isAI ? '#616161' : isMe ? '#E6EDF3' : '#404040', mb: 0.2 }}>{isAI ? 'AI' : msg.username}</Typography>
+                                    <Typography sx={{ fontWeight: 'bold', color: isAI ? '#23272f' : isMe ? 'white' : 'black', wordBreak: 'break-word', whiteSpace: 'pre-line' }}>{msg.message}</Typography>
+                                    <Box sx={{ width: "100%", display: "flex", justifyContent: isMe ? 'flex-end' : 'flex-start', px: 1 }}>
+                                        <Typography variant="caption" fontWeight="bold" sx={{ color: isAI ? '#616161' : isMe ? '#E6EDF3' : 'grey' }}>{msg.time && formatLogTimestamp(msg.time)}</Typography>
+                                    </Box>
                                 </Box>
+                                {/* Right Avatar (me) */}
+                                {isMe && (
+                                    <Avatar sx={{ width: 36, height: 36, fontSize: 16, border: "1.5px solid #58A6FF" }} alt={msg.username} src={getAvatar(userInfo?.image)} />
+                                )}
                             </Box>
-                        </Box>
-                    ))
+                        );
+                    })
                 )}
             </Box>
-
-            {/* Scroll to Top Button */}
-            {showScrollUp && (
-                <Box sx={{ position: 'absolute', top: 2, right: 14 }}>
-                    <KeyboardDoubleArrowUpRoundedIcon
-                        onClick={scrollToTop}
-                        sx={{
-                            p: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            color: 'black',
-                            borderRadius: '20px',
-                            bgcolor: '#E6E6E6',
-                            '&:hover': { bgcolor: '#CCCCCC' },
-                        }}
-                    />
-                </Box>
-            )}
-
-            {/* Scroll to Bottom Button */}
-            {showScrollDown && (
-                <Box sx={{ position: 'absolute', bottom: 62, right: 14 }}>
-                    <KeyboardDoubleArrowDownRoundedIcon
-                        onClick={scrollToBottom}
-                        sx={{
-                            p: '4px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            color: 'black',
-                            borderRadius: '20px',
-                            bgcolor: '#E6E6E6',
-                            '&:hover': { bgcolor: '#CCCCCC' },
-                        }}
-                    />
-                </Box>
-            )}
-
-            {/* Input Section */}
+            {/* Input Section (Sticky) */}
             <Box
                 sx={{
                     display: 'flex',
-                    alignItems: 'flex-end',
-                    borderTop: '1px solid #D9D9D9',
-                    p: 1,
-                    gap: 1,
+                    alignItems: 'center',
+                    borderTop: '1.5px solid #23272f',
+                    p: 1.5,
+                    gap: 1.2,
+                    bgcolor: '#23272f',
+                    position: 'sticky',
+                    bottom: 0,
+                    zIndex: 10,
                 }}
             >
-                <button
-                    style={{ cursor: 'pointer', paddingLeft: 6, paddingRight: 6 }}
-                    onClick={toggleEmoji}
-                >
-                    <SentimentSatisfiedRoundedIcon />
-                </button>
+                <Box sx={{ display: 'flex', alignItems: 'center', mr: 1 }}>
+                    <IconButton onClick={toggleEmoji} sx={{ color: '#58A6FF', bgcolor: '#F5F7FA', borderRadius: 2, '&:hover': { bgcolor: '#E6E6E6' } }}>
+                        <SentimentSatisfiedRoundedIcon />
+                    </IconButton>
+                </Box>
                 <textarea
                     id='style-1'
                     ref={textareaRef}
                     value={message}
                     onChange={(e) => setMessage(e.target.value)}
-                    placeholder="Type a message..."
+                    placeholder="Message..."
                     rows={message.includes('\n') ? 2 : 1}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             if (e.shiftKey) {
-                                e.preventDefault(); // Prevents default newline behavior.
+                                e.preventDefault();
                                 setMessage((prevMsg) => prevMsg + '\n');
                             } else {
-                                e.preventDefault(); // Prevents textarea from adding a new line.
-                                handleSubmit(); // Send the message.
+                                e.preventDefault();
+                                handleSubmit();
                             }
                         }
                     }}
                     style={{
                         flexGrow: 2,
-                        backgroundColor: 'transparent',
-                        border: '1px solid #ccc',
-                        borderRadius: '6px',
-                        padding: '5px',
+                        backgroundColor: '#F5F7FA',
+                        border: '1.5px solid #58A6FF',
+                        borderRadius: '10px',
+                        padding: '10px 14px',
                         outline: 'none',
                         fontWeight: 'bold',
-                        resize: 'none', // Disable resizing to maintain max rows
-                        overflowY: 'auto', // Add scroll when max rows are reached
+                        fontSize: '1.08rem',
+                        resize: 'none',
+                        minHeight: 36,
+                        maxHeight: 80,
+                        boxShadow: '0 1px 4px #58A6FF11',
+                        color: '#23272f',
+                        transition: 'border 0.2s, box-shadow 0.2s',
                     }}
                 />
-                <button
+                <IconButton
                     onClick={handleSubmit}
-                    style={{
-                        backgroundColor: '#333333',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: '6px',
-                        borderRadius: '6px',
+                    sx={{
+                        backgroundColor: '#58A6FF',
+                        color: 'white',
+                        borderRadius: 2,
+                        ml: 1,
+                        p: 1.2,
+                        '&:hover': { backgroundColor: '#1F6FEB' },
+                        boxShadow: '0 2px 8px #58A6FF33',
                     }}
+                    disabled={msgSendLoading || !message.trim()}
                 >
-
-                    {msgSendLoading ?
-                        <CircularProgress
-                            size={20}
-                            thickness={6}
-                            sx={{
-                                color: "white",
-                                '& circle': { strokeLinecap: 'round' },
-                            }}
-                        />
-                        :
-                        <SendRoundedIcon sx={{ color: 'white' }} />}
-                </button>
+                    {msgSendLoading ? <CircularProgress size={20} thickness={6} sx={{ color: "white" }} /> : <SendRoundedIcon />}
+                </IconButton>
             </Box>
-
             {/* Emoji Picker */}
             {isEmojiOn && (
-                <Box sx={{ zIndex: 999999999 }}>
+                <Box sx={{ zIndex: 999999999, position: 'absolute', bottom: 60, left: 20 }}>
                     <EmojiPicker
-                        onEmojiClick={(emojiData) =>
-                            setMessage((prevMsg) => prevMsg + emojiData.emoji)
-                        }
+                        onEmojiClick={(emojiData) => setMessage((prevMsg) => prevMsg + emojiData.emoji)}
                         emojiStyle="facebook"
                         theme={Theme.DARK}
-                        style={{
-                            display: 'flex',
-                            width: '100%',
-                            zIndex: 999999999,
-                        }}
+                        style={{ display: 'flex', width: '100%', zIndex: 999999999 }}
                     />
                 </Box>
             )}

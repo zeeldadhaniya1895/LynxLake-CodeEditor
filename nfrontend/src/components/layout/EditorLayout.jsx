@@ -23,6 +23,7 @@ import { Typography, Avatar, Tooltip } from "@mui/material";
 import Chat from '../Chat';
 import { useUser } from '../../context/user';
 import { getAuthHeaders } from '../../utils/fileTreeApi';
+import { useSocket } from '../../context/socket';
 
 // Placeholder modules
 // const Filebar = () => <Box sx={{ bgcolor: '#23272f', color: '#fff', height: '100%', p: 2 }}>Filebar</Box>;
@@ -122,7 +123,7 @@ const Terminal = ({ input, setInput, output, loading }) => (
   </Box>
 );
 
-export default function EditorLayout() {
+export default function EditorLayout({ projectId }) {
   // All useState hooks at the top
   const [terminalOpen, setTerminalOpen] = React.useState(true);
   const [overlayMode, setOverlayMode] = React.useState('full');
@@ -137,6 +138,7 @@ export default function EditorLayout() {
   const [terminalOutput, setTerminalOutput] = useState('');
   const [terminalLoading, setTerminalLoading] = useState(false);
   const { userInfo } = useUser();
+  const { socket } = useSocket();
   // refs
   const filebarRef = React.useRef(null);
   const editorRef = React.useRef(null);
@@ -205,7 +207,7 @@ export default function EditorLayout() {
       />
     </Box>,
     <Box ref={chatRef} key="chat" sx={{ height: '100%', minWidth: 0, maxWidth: 400, overflow: 'hidden', display: chatOpen ? 'block' : 'none' }}>
-      <Chat />
+      <Chat socket={socket} projectId={projectId} />
     </Box>
   ];
 
@@ -273,7 +275,7 @@ export default function EditorLayout() {
       setTerminalOutput(data.output || data.error || 'No output');
     } catch (err) {
       setTerminalOutput('Error: ' + err.message);
-    }
+  }
     setTerminalLoading(false);
   };
 

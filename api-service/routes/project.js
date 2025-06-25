@@ -5,7 +5,6 @@ const projectCore = require("../controllers/project/core");
 const projectFile = require("../controllers/project/file");
 const projectMember = require("../controllers/project/member");
 const projectInvitation = require("../controllers/project/invitation");
-const projectCodeExecution = require("../controllers/project/codeExecution");
 const projectChatAndLogs = require("../controllers/project/chatAndLogs");
 
 const router = Router();
@@ -31,9 +30,6 @@ router.put("/:projectId/name", verifyTokenAndAuthorization, checkProjectAccess, 
 
 // Delete project (owner only)
 router.delete("/:projectId", verifyTokenAndAuthorization, checkProjectAccess, requireRole(['owner']), projectCore.deleteProject);
-
-// Code execution (editor and above)
-router.post("/:projectId/execute", verifyTokenAndAuthorization, checkProjectAccess, requireRole(['owner', 'admin', 'editor']), projectCodeExecution.executeCode);
 
 // Chat and logs (all authenticated users with access)
 router.get("/:projectId/chat/messages", verifyTokenAndAuthorization, checkProjectAccess, projectChatAndLogs.getMessages);
