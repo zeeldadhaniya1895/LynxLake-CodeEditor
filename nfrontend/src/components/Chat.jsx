@@ -19,6 +19,8 @@ import KeyboardDoubleArrowUpRoundedIcon from '@mui/icons-material/KeyboardDouble
 import KeyboardDoubleArrowDownRoundedIcon from '@mui/icons-material/KeyboardDoubleArrowDownRounded';
 import CancelRoundedIcon from '@mui/icons-material/CancelRounded';
 
+import logo from '../images/logo.jpg';
+
 function Chat(props) {
 
     const { socket, projectId } = props;
@@ -180,6 +182,61 @@ function Chat(props) {
                             />
                         </Box>
                     </>
+                ) : messages.length === 0 ? (
+                    <Box sx={{
+                        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%',
+                        position: 'relative', zIndex: 2
+                    }}>
+                        <Box sx={{
+                            p: 3,
+                            borderRadius: 5,
+                            bgcolor: '#23272f',
+                            boxShadow: '0 8px 32px #0008, 0 0 0 2px #58A6FF44',
+                            border: '1.5px solid #23272f',
+                            minWidth: 280,
+                            maxWidth: 400,
+                            backdropFilter: 'blur(12px)',
+                            textAlign: 'center',
+                            mb: 2,
+                            transition: 'box-shadow 0.3s, border 0.3s',
+                            '&:hover': {
+                              boxShadow: '0 12px 40px #1F6FEB33, 0 0 0 3px #58A6FF88',
+                              border: '1.5px solid #58A6FF',
+                            }
+                        }}>
+                            <img src={logo} alt="Chat Logo" style={{ width: 56, height: 56, borderRadius: '50%', marginBottom: 12, boxShadow: '0 2px 12px #58A6FF44', background: '#161B22', border: '2px solid #58A6FF' }} />
+                            <Typography variant="h6" sx={{ background: 'linear-gradient(90deg, #58A6FF 30%, #1F6FEB 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 900, mb: 1, letterSpacing: 1, fontSize: '1.4rem', textShadow: '0 2px 12px #58A6FF22' }}>
+                                Welcome to Project Chat!
+                            </Typography>
+                            <Typography sx={{ color: '#A0B3D6', mb: 1 }}>
+                                No messages yet.
+                            </Typography>
+                            <Typography sx={{ color: '#58A6FF', fontWeight: 700, fontSize: '1.1rem', mb: 1 }}>
+                                Say hi to your teammates! 👋
+                            </Typography>
+                            <Typography sx={{ color: '#A0B3D6', fontSize: '1rem', fontStyle: 'italic', mb: 2 }}>
+                                "Every great project starts with a hello! 💬"
+                            </Typography>
+                            {/* Dummy chat bubbles */}
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2, alignItems: 'flex-start', mt: 2 }}>
+                                <Box sx={{ bgcolor: '#23272f', color: '#58A6FF', px: 2, py: 1, borderRadius: 3, mb: 1, boxShadow: '0 2px 8px #58A6FF22', border: '1.5px solid #58A6FF', fontWeight: 600, animation: 'fadeIn 0.7s' }}>
+                                    Hi there! 👋
+                                </Box>
+                                <Box sx={{ bgcolor: '#23272f', color: '#E6EDF3', px: 2, py: 1, borderRadius: 3, mb: 1, boxShadow: '0 2px 8px #58A6FF22', border: '1.5px solid #23272f', fontWeight: 600, animation: 'fadeIn 1.2s' }}>
+                                    Welcome to the project!
+                                </Box>
+                                <Box sx={{ bgcolor: '#23272f', color: '#A0B3D6', px: 2, py: 1, borderRadius: 3, boxShadow: '0 2px 8px #58A6FF22', border: '1.5px solid #23272f', fontWeight: 600, animation: 'fadeIn 1.7s' }}>
+                                    Let's start collaborating! 🚀
+                                </Box>
+                            </Box>
+                            <style>{`
+                              @keyframes fadeIn {
+                                from { opacity: 0; transform: translateY(20px); }
+                                to { opacity: 1; transform: translateY(0); }
+                              }
+                            `}</style>
+                        </Box>
+                    </Box>
                 ) : (
                     messages.map((msg, index) => (
                         <Box key={index} sx={{ display: 'flex', justifyContent: "flex-start", gap: 1, bgcolor: "#E6E6E6", borderRadius: "10px", my: "10px" }}>

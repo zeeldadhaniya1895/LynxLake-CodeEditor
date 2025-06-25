@@ -77,75 +77,75 @@ const ProjectHeader = ({
 
           {/* Search Bar & Sort Button - Only if showSearchAndSort */}
           {showSearchAndSort && (
-            <Box sx={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              gap: 2,
-              flex: 1,
-              maxWidth: 600,
-              mx: 4
-            }}>
-              <Box sx={{
-                position: 'relative',
-                width: '100%',
-                '& .MuiInputBase-root': {
-                  color: '#E6EDF3',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  borderRadius: '12px',
-                  border: '1px solid rgba(88, 166, 255, 0.2)',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    border: '1px solid rgba(88, 166, 255, 0.4)',
-                    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-                  },
-                  '&.Mui-focused': {
-                    border: '1px solid #58A6FF',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    boxShadow: '0 0 0 3px rgba(88, 166, 255, 0.1)',
-                  },
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 2,
+            flex: 1,
+            maxWidth: 600,
+            mx: 4
+          }}>
+            <Box sx={{
+              position: 'relative',
+              width: '100%',
+              '& .MuiInputBase-root': {
+                color: '#E6EDF3',
+                backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: '12px',
+                border: '1px solid rgba(88, 166, 255, 0.2)',
+                transition: 'all 0.3s ease',
+                '&:hover': {
+                  border: '1px solid rgba(88, 166, 255, 0.4)',
+                  backgroundColor: 'rgba(255, 255, 255, 0.08)',
                 },
-                '& .MuiInputBase-input': {
-                  padding: '12px 16px 12px 48px',
-                  fontSize: '16px',
-                  '&::placeholder': {
-                    color: 'rgba(255, 255, 255, 0.5)',
-                    opacity: 1,
-                  },
+                '&.Mui-focused': {
+                  border: '1px solid #58A6FF',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  boxShadow: '0 0 0 3px rgba(88, 166, 255, 0.1)',
                 },
-              }}>
-                <SearchRounded sx={{
-                  position: 'absolute',
-                  left: 16,
-                  top: '50%',
-                  transform: 'translateY(-50%)',
+              },
+              '& .MuiInputBase-input': {
+                padding: '12px 16px 12px 48px',
+                fontSize: '16px',
+                '&::placeholder': {
                   color: 'rgba(255, 255, 255, 0.5)',
-                  fontSize: 20,
-                }} />
-                <InputBase
-                  placeholder="Search projects..."
-                  value={searchValue}
-                  onChange={onSearchChange}
-                  fullWidth
-                />
-              </Box>
-
-              <Tooltip title={`Sort ${isAscending ? 'Descending' : 'Ascending'}`}>
-                <IconButton
-                  onClick={onSortProjects}
-                  sx={{
-                    color: '#58A6FF',
-                    backgroundColor: 'rgba(88, 166, 255, 0.1)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(88, 166, 255, 0.2)',
-                      transform: 'scale(1.1)',
-                    },
-                    transition: 'all 0.3s ease',
-                  }}
-                >
-                  <SortByAlphaRounded />
-                </IconButton>
-              </Tooltip>
+                  opacity: 1,
+                },
+              },
+            }}>
+              <SearchRounded sx={{
+                position: 'absolute',
+                left: 16,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'rgba(255, 255, 255, 0.5)',
+                fontSize: 20,
+              }} />
+              <InputBase
+                placeholder="Search projects..."
+                value={searchValue}
+                onChange={onSearchChange}
+                fullWidth
+              />
             </Box>
+
+            <Tooltip title={`Sort ${isAscending ? 'Descending' : 'Ascending'}`}>
+              <IconButton
+                onClick={onSortProjects}
+                sx={{
+                  color: '#58A6FF',
+                  backgroundColor: 'rgba(88, 166, 255, 0.1)',
+                  '&:hover': {
+                    backgroundColor: 'rgba(88, 166, 255, 0.2)',
+                    transform: 'scale(1.1)',
+                  },
+                  transition: 'all 0.3s ease',
+                }}
+              >
+                <SortByAlphaRounded />
+              </IconButton>
+            </Tooltip>
+          </Box>
           )}
 
           {/* Profile Section */}

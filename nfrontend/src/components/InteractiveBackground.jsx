@@ -3,12 +3,12 @@ import { Box } from "@mui/material";
 
 const InteractiveBackground = () => (
   <Box sx={{ 
-    position: 'fixed', 
+    position: 'absolute',
     top: 0, 
     left: 0, 
-    width: '100vw', 
-    height: '100vh', 
-    zIndex: -1, 
+    width: '100%', 
+    height: '100%', 
+    zIndex: 0,
     overflow: 'hidden',
     background: 'linear-gradient(135deg, #0D1117 0%, #161B22 50%, #21262D 100%)'
   }}>

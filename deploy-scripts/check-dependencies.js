@@ -101,7 +101,7 @@ function checkRootDependencies() {
 
 // Main function
 function checkAllDependencies() {
-  console.log('🚀 CoEdit Dependency Checker');
+  console.log('🚀 LynxLake Dependency Checker');
   console.log('============================');
   
   const services = ['api-service', 'socket-service', 'execution-service', 'nfrontend'];

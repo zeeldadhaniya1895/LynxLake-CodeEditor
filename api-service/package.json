@@ -1,7 +1,7 @@
 {
   "name": "api-service",
   "version": "1.0.0",
-  "description": "API Service for CoEdit - Database and User Management",
+  "description": "API Service for LynxLake - Database and User Management",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

@@ -1,0 +1,12 @@
+/* react-split gutter custom styles */
+.gutter {
+  background: #23272f;
+  transition: background 0.2s;
+  cursor: col-resize;
+}
+/* .gutter.gutter-horizontal:hover {
+  background: #58A6FF;
+}
+.gutter.gutter-horizontal.dragged {
+  background: #1F6FEB;
+}  */

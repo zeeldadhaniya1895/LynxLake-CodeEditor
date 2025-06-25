@@ -1,7 +1,7 @@
 {
   "name": "execution-service",
   "version": "1.0.0",
-  "description": "Execution Service for CoEdit - Code Compilation and Sandbox",
+  "description": "Execution Service for LynxLake - Code Compilation and Sandbox",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

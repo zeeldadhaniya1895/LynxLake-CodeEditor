@@ -1,7 +1,7 @@
 {
   "name": "socket-service",
   "version": "1.0.0",
-  "description": "Socket Service for CoEdit - Real-time Collaboration",
+  "description": "Socket Service for LynxLake - Real-time Collaboration",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

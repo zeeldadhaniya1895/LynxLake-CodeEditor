@@ -14,17 +14,17 @@ const isProduction = import.meta.env.PROD;
 const config = {
   // Service URLs with environment-based fallbacks
   API_SERVICE_URL: getEnvVar('VITE_API_SERVICE_URL', 
-    isDevelopment ? 'http://localhost:5000' : 'https://api.coedit.com'),
+    isDevelopment ? 'http://localhost:5000' : 'https://api.LynxLake.com'),
   
   SOCKET_SERVICE_URL: getEnvVar('VITE_SOCKET_SERVICE_URL', 
-    isDevelopment ? 'http://localhost:5001' : 'https://socket.coedit.com'),
+    isDevelopment ? 'http://localhost:5001' : 'https://socket.LynxLake.com'),
   
   EXECUTION_SERVICE_URL: getEnvVar('VITE_EXECUTION_SERVICE_URL', 
-    isDevelopment ? 'http://localhost:5002' : 'https://execution.coedit.com'),
+    isDevelopment ? 'http://localhost:5002' : 'https://execution.LynxLake.com'),
   
   // Legacy support (for backward compatibility)
   BACKEND_API: getEnvVar('VITE_API_SERVICE_URL', 
-    isDevelopment ? 'http://localhost:5000' : 'https://api.coedit.com'),
+    isDevelopment ? 'http://localhost:5000' : 'https://api.LynxLake.com'),
   
   // Google OAuth
   GOOGLE_CLIENT_ID: getEnvVar('VITE_GOOGLE_CLIENT_ID', ''),
@@ -43,17 +43,17 @@ const config = {
   getApiUrl: () => {
     // Priority: Runtime env > Build-time constant > Fallback
     return config.API_SERVICE_URL || config.BUILD_API_URL || 
-           (isDevelopment ? 'http://localhost:5000' : 'https://api.coedit.com');
+           (isDevelopment ? 'http://localhost:5000' : 'https://api.LynxLake.com');
   },
   
   getSocketUrl: () => {
     return config.SOCKET_SERVICE_URL || config.BUILD_SOCKET_URL || 
-           (isDevelopment ? 'http://localhost:5001' : 'https://socket.coedit.com');
+           (isDevelopment ? 'http://localhost:5001' : 'https://socket.LynxLake.com');
   },
   
   getExecutionUrl: () => {
     return config.EXECUTION_SERVICE_URL || config.BUILD_EXECUTION_URL || 
-           (isDevelopment ? 'http://localhost:5002' : 'https://execution.coedit.com');
+           (isDevelopment ? 'http://localhost:5002' : 'https://execution.LynxLake.com');
   },
   
   // Debug info

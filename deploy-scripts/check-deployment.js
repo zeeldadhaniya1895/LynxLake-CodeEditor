@@ -259,7 +259,7 @@ function checkSocketServiceFiles() {
 
 // Main function
 async function checkDeployment() {
-  console.log('🚀 CoEdit Deployment Check\n');
+  console.log('🚀 LynxLake Deployment Check\n');
   console.log('=' .repeat(50));
   
   // Check environment files

@@ -1,8 +1,8 @@
-# CoEdit - 3-Service Architecture
+# LynxLake - 3-Service Architecture
 
 ## Overview
 
-CoEdit is now built with a microservices architecture consisting of 3 separate services:
+LynxLake is now built with a microservices architecture consisting of 3 separate services:
 
 1. **API Service** (Port 5000) - Database operations, User Management, Authentication
 2. **Socket Service** (Port 5001) - Real-time collaboration, Live cursors, Chat
@@ -18,7 +18,7 @@ CoEdit is now built with a microservices architecture consisting of 3 separate s
           │                      │                      │
           ▼                      ▼                      ▼
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   API Service   │    │  Socket Service │    │ Execution Service│
+│   API Service   │    │  Socket Service │    │Execution Service│
 │   (Port 5000)   │    │   (Port 5001)   │    │   (Port 5002)   │
 │   .env file     │    │   .env file     │    │   .env file     │
 │   queries/      │    │   socket/       │    │   (placeholder) │
@@ -182,7 +182,7 @@ API_PORT=5000
 NODE_ENV=development
 
 # Database Configuration
-POSTGRES_URL=postgresql://username:password@localhost:5432/coedit_db
+POSTGRES_URL=postgresql://username:password@localhost:5432/LynxLake_db
 
 # JWT Configuration
 JWT_SECRET_KEY=your_jwt_secret_key_here
@@ -215,7 +215,7 @@ SOCKET_PORT=5001
 NODE_ENV=development
 
 # Database Configuration
-POSTGRES_URL=postgresql://username:password@localhost:5432/coedit_db
+POSTGRES_URL=postgresql://username:password@localhost:5432/LynxLake_db
 
 # Frontend URL (for CORS)
 FRONTEND_URL=http://localhost:5173

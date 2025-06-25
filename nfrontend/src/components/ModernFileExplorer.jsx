@@ -155,29 +155,29 @@ function ModernFileExplorer({ setSelectedFile, selectedFile, sidebarOpen, setSid
               {sidebarOpen ? <ChevronLeftIcon /> : <MenuIcon />}
             </IconButton>
             <Typography variant="h6" sx={{ color: '#E6EDF3', ml: 1, flex: 1, fontWeight: 700, letterSpacing: 1 }}>
-              Files
-            </Typography>
+        Files
+      </Typography>
           </Box>
           <Box sx={{ p: 2 }}>
-            {loading ? (
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      {loading ? (
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <CircularProgress size={20} sx={{ color: "#58A6FF" }} />
                 <Typography sx={{ color: "#A0B3D6" }}>Loading...</Typography>
-              </Box>
-            ) : error ? (
+        </Box>
+      ) : error ? (
               <Alert severity="error" sx={{ mt: 2, bgcolor: '#2d2d2d', color: '#ff5252', border: '1px solid #ff5252' }}>{error}</Alert>
-            ) : !tree ? (
+      ) : !tree ? (
               <Typography sx={{ color: "#A0B3D6" }}>(No files yet)</Typography>
-            ) : (
-              <FileTreeNode
-                node={tree}
-                onAdd={handleAdd}
-                onRename={handleRename}
-                onDelete={handleDelete}
+      ) : (
+        <FileTreeNode
+          node={tree}
+          onAdd={handleAdd}
+          onRename={handleRename}
+          onDelete={handleDelete}
                 onSelect={setSelectedFile ? (node) => setSelectedFile(node) : undefined}
-                selectedId={selectedFile?.id}
-              />
-            )}
+          selectedId={selectedFile?.id}
+        />
+      )}
           </Box>
         </Paper>
       </ResizableBox>

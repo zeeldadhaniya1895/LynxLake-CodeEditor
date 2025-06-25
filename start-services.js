@@ -1,7 +1,7 @@
 const { spawn } = require('child_process');
 const path = require('path');
 
-console.log('🚀 Starting CoEdit Services...\n');
+console.log('🚀 Starting LynxLake Services...\n');
 
 // Function to start a service
 function startService(serviceName, servicePath, port) {

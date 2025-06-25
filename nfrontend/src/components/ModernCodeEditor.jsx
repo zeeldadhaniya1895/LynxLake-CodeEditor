@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import MonacoEditor from "@monaco-editor/react";
-import { Box, Typography, CircularProgress, Button, Alert, Chip } from "@mui/material";
+import MonaLynxLakeor from "@monaco-editor/react";
+import { Box, Typography, CircularProgress, Button, Alert, Chip, IconButton, Avatar, Stack, Tooltip, Menu, MenuItem } from "@mui/material";
 import { useParams } from "react-router-dom";
 import { useSocket } from "../context/socket";
 import prettier from "prettier/standalone";
 import parserBabel from "prettier/parser-babel";
+import SaveIcon from "@mui/icons-material/Save";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
+import UndoIcon from "@mui/icons-material/Undo";
+import RedoIcon from "@mui/icons-material/Redo";
+import SettingsIcon from "@mui/icons-material/Settings";
+import PersonIcon from "@mui/icons-material/Person";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import InteractiveBackground from "./InteractiveBackground";
+import logo from '../images/logo.jpg';
 
 const THEMES = [
   { label: "VS Dark", value: "vs-dark" },
@@ -29,11 +39,13 @@ const LANGUAGES = [
 const DEFAULT_LANGUAGE = "javascript";
 const DEFAULT_THEME = "vs-dark";
 
-function ModernCodeEditor({
+export default function ModernCodeEditor({
   value = "",
   language = DEFAULT_LANGUAGE,
   theme = DEFAULT_THEME,
   onChange,
+  selectedFile,
+  onLiveUsersChange,
   ...props
 }) {
   const { projectId } = useParams();
@@ -71,14 +83,15 @@ function ModernCodeEditor({
     if (!socket) return;
 
     const handleConnect = () => {
-      console.log("[ModernCodeEditor] Socket connected!");
       setIsConnected(true);
     };
 
     const handleDisconnect = () => {
-      console.log("[ModernCodeEditor] Socket disconnected!");
       setIsConnected(false);
     };
+
+    // Initial state sync
+    setIsConnected(socket.connected);
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
@@ -113,14 +126,14 @@ function ModernCodeEditor({
 
   // Real-time code sync logic
   useEffect(() => {
-    if (!socket || !props.selectedFile) {
-      console.log("[ModernCodeEditor] Socket or selectedFile missing", { socket, selectedFile: props.selectedFile });
+    if (!socket || !selectedFile) {
+      console.log("[ModernCodeEditor] Socket or selectedFile missing", { socket, selectedFile: selectedFile });
       return;
     }
 
-    console.log("[ModernCodeEditor] Joining file for real-time sync", props.selectedFile.id);
+    console.log("[ModernCodeEditor] Joining file for real-time sync", selectedFile.id);
     socket.emit("code-editor:join-file", { 
-      file_id: props.selectedFile.id,
+      file_id: selectedFile.id,
       project_id: projectId,
       username: localStorage.getItem('username')
     });
@@ -128,7 +141,7 @@ function ModernCodeEditor({
     // Listen for code changes from others
     const handleReceiveChange = (data) => {
       console.log("[ModernCodeEditor] Received code change", data);
-      if (data.file_id === props.selectedFile.id && data.code !== code) {
+      if (data.file_id === selectedFile.id && data.code !== code) {
         setCode(data.code);
       }
     };
@@ -136,9 +149,9 @@ function ModernCodeEditor({
     // Listen for live users updates
     const handleLoadLiveUsers = (data) => {
       console.log("[ModernCodeEditor] Loading live users", data);
-      if (data.file_id === props.selectedFile.id) {
+      if (data.file_id === selectedFile.id) {
         socket.emit("code-editor:load-live-users-send-back", {
-          file_id: props.selectedFile.id,
+          file_id: selectedFile.id,
           project_id: projectId,
           username: localStorage.getItem('username'),
           image: localStorage.getItem('image')
@@ -155,7 +168,7 @@ function ModernCodeEditor({
 
     const handleUserJoined = (data) => {
       console.log("[ModernCodeEditor] User joined file", data);
-      if (data.aUser && data.aUser.file_id === props.selectedFile.id) {
+      if (data.aUser && data.aUser.file_id === selectedFile.id) {
         setLiveUsers(prev => {
           const exists = prev.find(user => user.username === data.aUser.username);
           if (!exists) {
@@ -168,7 +181,7 @@ function ModernCodeEditor({
 
     const handleUserLeft = (data) => {
       console.log("[ModernCodeEditor] User left file", data);
-      if (data.file_id === props.selectedFile.id) {
+      if (data.file_id === selectedFile.id) {
         setLiveUsers(prev => prev.filter(user => user.username !== data.username));
       }
     };
@@ -176,13 +189,13 @@ function ModernCodeEditor({
     // Listen for cursor updates
     const handleReceiveCursor = (data) => {
       console.log("[CURSOR] handleReceiveCursor called", data, "local username:", localStorage.getItem('username'));
-      if (data.file_id === props.selectedFile.id && data.username !== localStorage.getItem('username')) {
+      if (data.file_id === selectedFile.id && data.username !== localStorage.getItem('username')) {
         updateCursorDecoration(data);
       }
     };
 
     const handleRemoveCursor = (data) => {
-      if (data.file_id === props.selectedFile.id) {
+      if (data.file_id === selectedFile.id) {
         removeCursorDecoration(data.username);
       }
     };
@@ -205,12 +218,17 @@ function ModernCodeEditor({
       socket.off("code-editor:receive-cursor", handleReceiveCursor);
       socket.off("code-editor:remove-cursor", handleRemoveCursor);
       socket.emit("code-editor:leave-file", { 
-        file_id: props.selectedFile.id,
+        file_id: selectedFile.id,
         project_id: projectId,
         username: localStorage.getItem('username')
       });
     };
-  }, [socket, props.selectedFile, code]);
+  }, [socket, selectedFile, code]);
+
+  // Notify parent on liveUsers change
+  useEffect(() => {
+    if (onLiveUsersChange) onLiveUsersChange(liveUsers);
+  }, [liveUsers, onLiveUsersChange]);
 
   // Helper: generate color from username
   function getUserColor(username) {
@@ -363,9 +381,9 @@ function ModernCodeEditor({
 
     // Listen for cursor position changes
     editor.onDidChangeCursorPosition((e) => {
-      if (socket && props.selectedFile) {
+      if (socket && selectedFile) {
         socket.emit("code-editor:send-cursor", {
-          file_id: props.selectedFile.id,
+          file_id: selectedFile.id,
           project_id: projectId,
           username: localStorage.getItem('username'),
           position: {
@@ -379,14 +397,14 @@ function ModernCodeEditor({
 
   // Fetch file content when selectedFile changes
   useEffect(() => {
-    if (!props.selectedFile) return;
+    if (!selectedFile) return;
     setLoading(true);
     setError("");
     setCode("");
     setSaveMsg("");
     setLiveUsers([]);
     
-    fetch(`/api/editor/${projectId}/files/${props.selectedFile.id}/content`, { headers: getAuthHeaders() })
+    fetch(`/api/editor/${projectId}/files/${selectedFile.id}/content`, { headers: getAuthHeaders() })
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) setCode(data.data.file_data || "");
@@ -394,16 +412,16 @@ function ModernCodeEditor({
       })
       .catch(err => setError(err.message))
       .finally(() => setLoading(false));
-  }, [props.selectedFile, projectId]);
+  }, [selectedFile, projectId]);
 
   // Save file content
   const handleSave = async () => {
-    if (!props.selectedFile) return;
+    if (!selectedFile) return;
     setSaving(true);
     setError("");
     setSaveMsg("");
     try {
-      const res = await fetch(`/api/editor/${projectId}/files/${props.selectedFile.id}/save`, {
+      const res = await fetch(`/api/editor/${projectId}/files/${selectedFile.id}/save`, {
         method: "POST",
         headers: getAuthHeaders(),
         body: JSON.stringify({ file_data: code })
@@ -459,10 +477,10 @@ function ModernCodeEditor({
     console.log("[ModernCodeEditor] handleEditorChange called", newValue);
     setCode(newValue);
     if (onChange) onChange(newValue);
-    if (socket && props.selectedFile) {
-      console.log("[ModernCodeEditor] Emitting code change", { file_id: props.selectedFile.id, code: newValue });
+    if (socket && selectedFile) {
+      console.log("[ModernCodeEditor] Emitting code change", { file_id: selectedFile.id, code: newValue });
       socket.emit("code-editor:send-change", {
-        file_id: props.selectedFile.id,
+        file_id: selectedFile.id,
         project_id: projectId,
         username: localStorage.getItem('username'),
         code: newValue,
@@ -481,10 +499,47 @@ function ModernCodeEditor({
     }
   };
 
-  if (!props.selectedFile) {
+  // Temporary filename/tab
+  const filename = selectedFile?.name || "Untitled";
+  if (!selectedFile) {
     return (
-      <Box sx={{ p: 3, color: "#666", display: "flex", alignItems: "center", height: "100%" }}>
-        <Typography variant="h6">Select a file to start editing</Typography>
+      <Box sx={{ height: '100%', width: '100%', position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+        <InteractiveBackground />
+        <Box sx={{
+          position: 'absolute',
+          top: '40%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          zIndex: 0,
+          textAlign: 'center',
+          p: 4,
+          bgcolor: '#23272f',
+          borderRadius: 5,
+          boxShadow: '0 8px 32px #0008, 0 0 0 2px #58A6FF44',
+          border: '1.5px solid #23272f',
+          minWidth: 340,
+          maxWidth: 440,
+          backdropFilter: 'blur(12px)',
+          transition: 'box-shadow 0.3s, border 0.3s',
+          '&:hover': {
+            boxShadow: '0 12px 40px #1F6FEB33, 0 0 0 3px #58A6FF88',
+            border: '1.5px solid #58A6FF',
+          }
+        }}>
+          <img src={logo} alt="CoEdit Logo" style={{ width: 72, height: 72, borderRadius: '50%', marginBottom: 18, boxShadow: '0 2px 16px #58A6FF44', background: '#161B22', border: '2.5px solid #58A6FF' }} />
+          <Typography variant="h5" sx={{ background: 'linear-gradient(90deg, #58A6FF 30%, #1F6FEB 90%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', fontWeight: 900, mb: 1, letterSpacing: 1, fontSize: '2rem', textShadow: '0 2px 12px #58A6FF22' }}>
+            Select a file to start
+          </Typography>
+          <Typography sx={{ color: '#A0B3D6', mb: 2, fontSize: '1.08rem' }}>
+            To start editing, select a file or create a new one.
+          </Typography>
+          <Typography sx={{ color: '#58A6FF', fontWeight: 700, fontSize: '1.1rem', mb: 1 }}>
+            Welcome to CoEdit 🚀
+          </Typography>
+          <Typography sx={{ color: '#A0B3D6', fontSize: '1rem', fontStyle: 'italic' }}>
+            "Let's make some bugs together! 🐞"
+          </Typography>
+        </Box>
       </Box>
     );
   }
@@ -492,55 +547,62 @@ function ModernCodeEditor({
   return (
     <div style={{ height: "100%", width: "100%", display: "flex", flexDirection: "column" }}>
       {/* Toolbar for language/theme selection and live users */}
-      <div style={{ padding: "8px", background: "#23272f", color: "#fff", display: "flex", alignItems: "center", gap: 16 }}>
-        <span style={{ marginRight: 16, fontWeight: 600 }}>Monaco Code Editor</span>
-        
-        {/* Connection status */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, px: 2, py: 1, bgcolor: '#23272f', borderBottom: '1.5px solid #23272f', boxShadow: '0 1px 6px #0004' }}>
+        <Typography variant="subtitle1" sx={{ color: '#A0B3D6', fontWeight: 700, letterSpacing: 0.5, mr: 2, fontSize: '1.08rem' }}>
+          Monaco Code Editor
+        </Typography>
         <Chip 
           label={isConnected ? "Connected" : "Disconnected"} 
-          color={isConnected ? "success" : "error"}
+          sx={{
+            bgcolor: isConnected ? '#00b894' : '#ff6b6b',
+            color: '#fff',
+            fontWeight: 600,
+            fontSize: '0.95rem',
+            borderRadius: 2,
+            px: 1.5,
+            height: 28,
+          }}
           size="small"
         />
-        
-        {/* Live users */}
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span>Live Users:</span>
-          {liveUsers.map(user => (
-            <Chip 
-              key={user.username}
-              label={user.username}
-              size="small"
-              variant="outlined"
-              style={{ color: "#fff", borderColor: "#fff" }}
-            />
-          ))}
-        </div>
-
-        <label style={{ marginRight: 8 }}>
-          Language:
+        <Box sx={{ flex: 1 }} />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ color: '#A0B3D6', fontWeight: 500, fontSize: '1rem', mr: 1 }}>Language:</Typography>
           <select
             value={currentLanguage}
             onChange={e => setCurrentLanguage(e.target.value)}
-            style={{ marginLeft: 8, padding: 4, borderRadius: 4 }}
+              style={{ padding: '6px 12px', borderRadius: 6, background: '#181c23', color: '#E6EDF3', border: '1.5px solid #23272f', fontWeight: 600, fontSize: '1rem', outline: 'none' }}
           >
             {LANGUAGES.map(lang => (
               <option key={lang.value} value={lang.value}>{lang.label}</option>
             ))}
           </select>
-        </label>
-        <label style={{ marginRight: 8 }}>
-          Theme:
+          </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography sx={{ color: '#A0B3D6', fontWeight: 500, fontSize: '1rem', mr: 1 }}>Theme:</Typography>
           <select
             value={currentTheme}
             onChange={e => setCurrentTheme(e.target.value)}
-            style={{ marginLeft: 8, padding: 4, borderRadius: 4 }}
+              style={{ padding: '6px 12px', borderRadius: 6, background: '#181c23', color: '#E6EDF3', border: '1.5px solid #23272f', fontWeight: 600, fontSize: '1rem', outline: 'none' }}
           >
             {THEMES.map(theme => (
               <option key={theme.value} value={theme.value}>{theme.label}</option>
             ))}
           </select>
-        </label>
-      </div>
+          </Box>
+          {/* Save icon and more options inline */}
+          <Tooltip title="Save">
+            <IconButton onClick={handleSave} sx={{ color: '#58A6FF', bgcolor: '#181c23', border: '1.5px solid #23272f', borderRadius: 2, ml: 2, '&:hover': { bgcolor: '#23272f', color: '#1F6FEB', borderColor: '#58A6FF' }, transition: 'all 0.2s' }}>
+              <SaveIcon />
+            </IconButton>
+          </Tooltip>
+          <MenuMoreOptions
+            onFormat={handleFormat}
+            onAISuggest={handleAISuggestion}
+            iconSx={{ color: '#A0B3D6', ml: 0.5 }}
+          />
+        </Box>
+      </Box>
 
       {/* Error and save messages */}
       {error && <Alert severity="error" sx={{ m: 1 }}>{error}</Alert>}
@@ -552,7 +614,7 @@ function ModernCodeEditor({
             <CircularProgress />
           </Box>
         ) : (
-        <MonacoEditor
+        <MonaLynxLakeor
           height="100%"
           width="100%"
           language={currentLanguage}
@@ -574,22 +636,30 @@ function ModernCodeEditor({
           />
         )}
       </div>
-
-      <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
-        <Button onClick={handleSave} variant="contained" color="primary">Save</Button>
-        <Button onClick={handleFormat} variant="outlined">Format</Button>
-        <Button onClick={handleAISuggestion} variant="outlined">AI Suggest</Button>
-      </Box>
-
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, p: 2 }}>
-        {liveUsers.length > 0 && (
-          <Typography variant="body2" color="text.secondary">
-            {liveUsers.length} user(s) editing this file
-          </Typography>
-        )}
-          </Box>
     </div>
   );
 }
 
-export default ModernCodeEditor; 
+function MenuMoreOptions({ onFormat, onAISuggest, iconSx }) {
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const open = Boolean(anchorEl);
+  const handleClick = (event) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+  return (
+    <>
+      <Tooltip title="More">
+        <IconButton size="small" onClick={handleClick} sx={{ ...iconSx }}>
+          <MoreVertIcon />
+        </IconButton>
+      </Tooltip>
+      <Menu anchorEl={anchorEl} open={open} onClose={handleClose} anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}>
+        <MenuItem onClick={() => { handleClose(); onFormat(); }}>Format</MenuItem>
+        <MenuItem onClick={() => { handleClose(); onAISuggest(); }}>AI Suggest</MenuItem>
+      </Menu>
+    </>
+  );
+} 
