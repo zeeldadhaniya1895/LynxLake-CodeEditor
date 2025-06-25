@@ -37,6 +37,7 @@ function Filebar({ setSelectedFile, selectedFile }) {
     setLoading(false);
   }, [projectId]);
 
+  // Only fetch on projectId change, not on every mount
   useEffect(() => {
     fetchTree();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -148,7 +149,7 @@ function Filebar({ setSelectedFile, selectedFile }) {
             onAdd={handleAdd}
             onRename={handleRename}
             onDelete={handleDelete}
-            onSelect={setSelectedFile ? (node) => setSelectedFile(node) : undefined}
+            onSelect={setSelectedFile ? (node) => setSelectedFile({ ...node, projectId }) : undefined}
             selectedId={selectedFile?.id}
           />
         )}

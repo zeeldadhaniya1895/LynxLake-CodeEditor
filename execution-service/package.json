@@ -11,8 +11,11 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dockerode": "^4.0.7",
     "dotenv": "^16.5.0",
     "express": "^4.19.2",
-    "nodemon": "^3.1.4"
+    "fs-extra": "^11.3.0",
+    "nodemon": "^3.1.4",
+    "tmp": "^0.2.3"
   }
-} 
+}

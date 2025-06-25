@@ -1,6 +1,6 @@
 // File tree API utility
 
-function getAuthHeaders() {
+export function getAuthHeaders() {
   return {
     'Content-Type': 'application/json',
     'Auth-Token': localStorage.getItem('authToken') || '',

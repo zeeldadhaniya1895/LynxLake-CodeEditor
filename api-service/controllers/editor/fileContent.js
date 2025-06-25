@@ -164,10 +164,31 @@ const getInitialTabs = async (req, res) => {
   }
 };
 
+// Update file content
+const updateFileContent = async (req, res) => {
+  try {
+    const { projectId, fileId } = req.params;
+    const { file_data } = req.body;
+    if (!fileId || !projectId || !file_data) {
+      return res.status(400).json({ message: 'Missing required fields.' });
+    }
+    // DB update query (reuse saveFile query)
+    const queries = require('../../queries/project');
+    const result = await pool.query(queries.saveFile, [file_data, fileId]);
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: 'File not found.' });
+    }
+    return res.status(200).json({ message: 'File content updated successfully' });
+  } catch (err) {
+    return res.status(500).json({ message: 'Failed to update file content', error: err.message });
+  }
+};
+
 module.exports = {
   getFileContent,
   saveFileContent,
   getFileLogs,
   saveFileLog,
-  getInitialTabs
+  getInitialTabs,
+  updateFileContent
 }; 

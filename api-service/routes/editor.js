@@ -58,4 +58,7 @@ router.post('/:projectId/logs', verifyTokenAndAuthorization, checkProjectAccess,
 // Get initial tabs
 router.get('/:projectId/initial-tabs', verifyTokenAndAuthorization, checkProjectAccess, fileContentController.getInitialTabs);
 
+// Update file content
+router.put('/:projectId/files/:fileId/content', verifyTokenAndAuthorization, checkProjectAccess, requireRole(['owner', 'admin', 'editor']), fileContentController.updateFileContent);
+
 module.exports = router; 

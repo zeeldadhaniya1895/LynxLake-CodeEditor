@@ -6,12 +6,7 @@ import { useSocket } from "../context/socket";
 import prettier from "prettier/standalone";
 import parserBabel from "prettier/parser-babel";
 import SaveIcon from "@mui/icons-material/Save";
-import PlayArrowIcon from "@mui/icons-material/PlayArrow";
-import FormatAlignLeftIcon from "@mui/icons-material/FormatAlignLeft";
-import UndoIcon from "@mui/icons-material/Undo";
-import RedoIcon from "@mui/icons-material/Redo";
-import SettingsIcon from "@mui/icons-material/Settings";
-import PersonIcon from "@mui/icons-material/Person";
+
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import InteractiveBackground from "./InteractiveBackground";
 import logo from '../images/logo.jpg';
@@ -46,11 +41,11 @@ export default function ModernCodeEditor({
   onChange,
   selectedFile,
   onLiveUsersChange,
+  onCodeChange,
+  onLanguageChange,
   ...props
 }) {
   const { projectId } = useParams();
-  const [code, setCode] = useState(value);
-  const [currentLanguage, setCurrentLanguage] = useState(language);
   const [currentTheme, setCurrentTheme] = useState(theme);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -75,8 +70,12 @@ export default function ModernCodeEditor({
   });
 
   useEffect(() => {
-    setCode(value);
-  }, [value]);
+    if (onCodeChange) onCodeChange(value);
+  }, [value, onCodeChange]);
+
+  useEffect(() => {
+    if (onLanguageChange) onLanguageChange(language);
+  }, [language, onLanguageChange]);
 
   // Socket connection status
   useEffect(() => {
@@ -141,8 +140,8 @@ export default function ModernCodeEditor({
     // Listen for code changes from others
     const handleReceiveChange = (data) => {
       console.log("[ModernCodeEditor] Received code change", data);
-      if (data.file_id === selectedFile.id && data.code !== code) {
-        setCode(data.code);
+      if (data.file_id === selectedFile.id && data.code !== value) {
+        onCodeChange(data.code);
       }
     };
 
@@ -223,7 +222,7 @@ export default function ModernCodeEditor({
         username: localStorage.getItem('username')
       });
     };
-  }, [socket, selectedFile, code]);
+  }, [socket, selectedFile, value]);
 
   // Notify parent on liveUsers change
   useEffect(() => {
@@ -400,14 +399,13 @@ export default function ModernCodeEditor({
     if (!selectedFile) return;
     setLoading(true);
     setError("");
-    setCode("");
     setSaveMsg("");
     setLiveUsers([]);
     
     fetch(`/api/editor/${projectId}/files/${selectedFile.id}/content`, { headers: getAuthHeaders() })
       .then(res => res.json())
       .then(data => {
-        if (data.success && data.data) setCode(data.data.file_data || "");
+        if (data.success && data.data) onCodeChange(data.data.file_data || "");
         else setError(data.message || "Failed to load file content");
       })
       .catch(err => setError(err.message))
@@ -424,7 +422,7 @@ export default function ModernCodeEditor({
       const res = await fetch(`/api/editor/${projectId}/files/${selectedFile.id}/save`, {
         method: "POST",
         headers: getAuthHeaders(),
-        body: JSON.stringify({ file_data: code })
+        body: JSON.stringify({ file_data: value })
       });
       const data = await res.json();
       if (data.success) setSaveMsg("Saved!");
@@ -440,13 +438,13 @@ export default function ModernCodeEditor({
   // Format code with Prettier
   const handleFormat = () => {
     try {
-      const formatted = prettier.format(code, {
+      const formatted = prettier.format(value, {
         parser: "babel",
         plugins: [parserBabel],
         singleQuote: true,
         semi: true,
       });
-      setCode(formatted);
+      onCodeChange(formatted);
       if (editorRef.current) editorRef.current.setValue(formatted);
     } catch (e) {
       setError("Formatting error: " + e.message);
@@ -456,7 +454,7 @@ export default function ModernCodeEditor({
   // AI Suggestion placeholder
   const handleAISuggestion = async () => {
     // Call your AI API here, get suggestion, insert at cursor
-    // Example: setCode(code + "\n// AI suggestion here");
+    // Example: onCodeChange(value + "\n// AI suggestion here");
     setError("AI Suggestion feature coming soon!");
   };
 
@@ -470,12 +468,12 @@ export default function ModernCodeEditor({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [code]);
+  }, [value]);
 
   // Emit code changes to others
   const handleEditorChange = (newValue) => {
     console.log("[ModernCodeEditor] handleEditorChange called", newValue);
-    setCode(newValue);
+    onCodeChange(newValue);
     if (onChange) onChange(newValue);
     if (socket && selectedFile) {
       console.log("[ModernCodeEditor] Emitting code change", { file_id: selectedFile.id, code: newValue });
@@ -569,8 +567,8 @@ export default function ModernCodeEditor({
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography sx={{ color: '#A0B3D6', fontWeight: 500, fontSize: '1rem', mr: 1 }}>Language:</Typography>
           <select
-            value={currentLanguage}
-            onChange={e => setCurrentLanguage(e.target.value)}
+            value={language}
+            onChange={e => onLanguageChange(e.target.value)}
               style={{ padding: '6px 12px', borderRadius: 6, background: '#181c23', color: '#E6EDF3', border: '1.5px solid #23272f', fontWeight: 600, fontSize: '1rem', outline: 'none' }}
           >
             {LANGUAGES.map(lang => (
@@ -617,9 +615,9 @@ export default function ModernCodeEditor({
         <MonaLynxLakeor
           height="100%"
           width="100%"
-          language={currentLanguage}
+          language={language}
           theme={currentTheme}
-          value={code}
+          value={value}
           onChange={handleEditorChange}
             onMount={handleEditorDidMount}
           options={{
